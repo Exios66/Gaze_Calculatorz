@@ -53,6 +53,7 @@ results = processor.run_pipeline(
 ## Input Data Format
 
 The input CSV file should contain at minimum the following columns:
+
 - `timestamp`: Time in milliseconds
 - `x`: X-coordinate of gaze position
 - `y`: Y-coordinate of gaze position
@@ -60,6 +61,7 @@ The input CSV file should contain at minimum the following columns:
 ## Output
 
 The pipeline generates several outputs in the `processed_data` directory:
+
 - CSV files with processed data, fixations, and saccades
 - Visualization images (PNG format)
 - Metrics summary
@@ -93,10 +95,10 @@ processor.save_processed_data()
 ## CWT Analysis
 
 The Continuous Wavelet Transform analysis is particularly useful for:
+
 - Identifying patterns at different time scales
 - Analyzing non-stationary signals
 - Detecting transient events in gaze data
 - Quantifying the time-frequency characteristics of eye movements
 
-The pipeline computes wavelet coefficients, power spectra, and entropy measures that can be used for further CWT analysis. 
-
+The pipeline computes wavelet coefficients, power spectra, and entropy measures that can be used for further CWT analysis.

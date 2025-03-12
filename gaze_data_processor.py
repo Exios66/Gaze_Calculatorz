@@ -282,16 +282,25 @@ class GazeDataProcessor:
         self.metrics['direction_changes'] = np.sum(np.abs(self.processed_data['angle_change']) > 0.1)
         
         # 5. Compute fixation and saccade metrics
-        if self.fixations is not None:
+        if self.fixations is not None and not self.fixations.empty:
             self.metrics['fixation_count'] = len(self.fixations)
             self.metrics['mean_fixation_duration'] = self.fixations['duration'].mean()
             self.metrics['total_fixation_time'] = self.fixations['duration'].sum()
+        else:
+            self.metrics['fixation_count'] = 0
+            self.metrics['mean_fixation_duration'] = 0
+            self.metrics['total_fixation_time'] = 0
             
-        if self.saccades is not None:
+        if self.saccades is not None and not self.saccades.empty:
             self.metrics['saccade_count'] = len(self.saccades)
             self.metrics['mean_saccade_amplitude'] = self.saccades['amplitude'].mean()
             self.metrics['mean_saccade_velocity'] = self.saccades['mean_velocity'].mean()
             self.metrics['max_saccade_velocity'] = self.saccades['max_velocity'].max()
+        else:
+            self.metrics['saccade_count'] = 0
+            self.metrics['mean_saccade_amplitude'] = 0
+            self.metrics['mean_saccade_velocity'] = 0
+            self.metrics['max_saccade_velocity'] = 0
         
         # 6. Compute scanpath metrics
         if self.fixations is not None and len(self.fixations) > 1:
@@ -312,6 +321,9 @@ class GazeDataProcessor:
                 self.metrics['scanpath_area'] = hull.volume
             except:
                 self.metrics['scanpath_area'] = 0
+        else:
+            self.metrics['scanpath_length'] = 0
+            self.metrics['scanpath_area'] = 0
         
         print("Computed CWT and gaze metrics successfully.")
         
@@ -344,7 +356,7 @@ class GazeDataProcessor:
         plt.savefig(os.path.join(self.output_dir, f'gaze_trajectory_{timestamp}.png'), dpi=300)
         
         # 2. Plot fixations and saccades
-        if self.fixations is not None and self.saccades is not None:
+        if self.fixations is not None and not self.fixations.empty and self.saccades is not None and not self.saccades.empty:
             plt.figure(figsize=(12, 10))
             
             # Plot gaze trajectory
@@ -415,7 +427,7 @@ class GazeDataProcessor:
             plt.savefig(os.path.join(self.output_dir, f'cwt_scalogram_{timestamp}.png'), dpi=300)
         
         # 5. Plot fixation duration distribution
-        if self.fixations is not None:
+        if self.fixations is not None and not self.fixations.empty:
             plt.figure(figsize=(10, 6))
             sns.histplot(self.fixations['duration'], bins=20, kde=True)
             plt.title('Fixation Duration Distribution')
@@ -426,7 +438,7 @@ class GazeDataProcessor:
             plt.savefig(os.path.join(self.output_dir, f'fixation_duration_dist_{timestamp}.png'), dpi=300)
         
         # 6. Plot saccade amplitude distribution
-        if self.saccades is not None:
+        if self.saccades is not None and not self.saccades.empty:
             plt.figure(figsize=(10, 6))
             sns.histplot(self.saccades['amplitude'], bins=20, kde=True)
             plt.title('Saccade Amplitude Distribution')
@@ -466,11 +478,11 @@ class GazeDataProcessor:
         self.processed_data.to_csv(os.path.join(self.output_dir, f'processed_gaze_data_{timestamp}.csv'), index=False)
         
         # Save fixations
-        if self.fixations is not None:
+        if self.fixations is not None and not self.fixations.empty:
             self.fixations.to_csv(os.path.join(self.output_dir, f'fixations_{timestamp}.csv'), index=False)
         
         # Save saccades
-        if self.saccades is not None:
+        if self.saccades is not None and not self.saccades.empty:
             self.saccades.to_csv(os.path.join(self.output_dir, f'saccades_{timestamp}.csv'), index=False)
         
         # Save metrics
@@ -563,13 +575,19 @@ if __name__ == "__main__":
     # Print summary of results
     print("\nSummary of Results:")
     print(f"Total data points: {len(results['processed_data'])}")
-    print(f"Number of fixations: {len(results['fixations'])}")
-    print(f"Number of saccades: {len(results['saccades'])}")
-    print(f"Mean fixation duration: {results['fixations']['duration'].mean():.3f} seconds")
     
-    if 'saccades' in results and len(results['saccades']) > 0:
+    if results['fixations'] is not None and not results['fixations'].empty:
+        print(f"Number of fixations: {len(results['fixations'])}")
+        print(f"Mean fixation duration: {results['fixations']['duration'].mean():.3f} seconds")
+    else:
+        print("No fixations detected.")
+    
+    if results['saccades'] is not None and not results['saccades'].empty:
+        print(f"Number of saccades: {len(results['saccades'])}")
         print(f"Mean saccade amplitude: {results['saccades']['amplitude'].mean():.2f} pixels")
         print(f"Mean saccade velocity: {results['saccades']['mean_velocity'].mean():.2f} pixels/sec")
+    else:
+        print("No saccades detected.")
     
     print(f"Total scanpath length: {results['metrics'].get('scanpath_length', 'N/A')}")
     print(f"Path complexity (direction changes): {results['metrics'].get('direction_changes', 'N/A')}")
