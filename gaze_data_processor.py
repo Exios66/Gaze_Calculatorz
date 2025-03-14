@@ -332,6 +332,7 @@ class GazeDataProcessor:
     def visualize_results(self):
         """
         Create visualizations of the gaze data, fixations, saccades, and CWT analysis.
+        Saves graphs to date-formatted folders (MM#DD#YYYY).
         """
         if self.processed_data is None:
             raise ValueError("Data must be loaded first using load_data()")
@@ -339,7 +340,19 @@ class GazeDataProcessor:
         print("Creating visualizations...")
         
         # Create timestamp for output files
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        current_datetime = datetime.now()
+        timestamp = current_datetime.strftime("%Y%m%d_%H%M%S")
+        
+        # Create date-formatted directory structure (MM#DD#YYYY)
+        date_folder = current_datetime.strftime("%m#%d#%Y")
+        date_folder_path = os.path.join(self.output_dir, date_folder)
+        
+        # Create necessary directories
+        os.makedirs(date_folder_path, exist_ok=True)
+        
+        # Create graphs subdirectory
+        graphs_folder = os.path.join(date_folder_path, 'graphs')
+        os.makedirs(graphs_folder, exist_ok=True)
         
         # 1. Plot raw gaze trajectory
         plt.figure(figsize=(10, 8))
@@ -353,7 +366,7 @@ class GazeDataProcessor:
         plt.axis('equal')
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, f'gaze_trajectory_{timestamp}.png'), dpi=300)
+        plt.savefig(os.path.join(graphs_folder, f'gaze_trajectory_{timestamp}.png'), dpi=300)
         
         # 2. Plot fixations and saccades
         if self.fixations is not None and not self.fixations.empty and self.saccades is not None and not self.saccades.empty:
@@ -383,7 +396,7 @@ class GazeDataProcessor:
             plt.axis('equal')
             plt.grid(True, alpha=0.3)
             plt.tight_layout()
-            plt.savefig(os.path.join(self.output_dir, f'fixations_saccades_{timestamp}.png'), dpi=300)
+            plt.savefig(os.path.join(graphs_folder, f'fixations_saccades_{timestamp}.png'), dpi=300)
         
         # 3. Plot velocity profile
         plt.figure(figsize=(12, 6))
@@ -396,7 +409,7 @@ class GazeDataProcessor:
         plt.grid(True, alpha=0.3)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, f'velocity_profile_{timestamp}.png'), dpi=300)
+        plt.savefig(os.path.join(graphs_folder, f'velocity_profile_{timestamp}.png'), dpi=300)
         
         # 4. Plot CWT scalogram for x and y coordinates
         if 'x_wavelet_coeffs' in self.metrics and 'y_wavelet_coeffs' in self.metrics:
@@ -424,7 +437,7 @@ class GazeDataProcessor:
             plt.colorbar(im2, ax=ax2, label='Magnitude')
             
             plt.tight_layout()
-            plt.savefig(os.path.join(self.output_dir, f'cwt_scalogram_{timestamp}.png'), dpi=300)
+            plt.savefig(os.path.join(graphs_folder, f'cwt_scalogram_{timestamp}.png'), dpi=300)
         
         # 5. Plot fixation duration distribution
         if self.fixations is not None and not self.fixations.empty:
@@ -435,7 +448,7 @@ class GazeDataProcessor:
             plt.ylabel('Frequency')
             plt.grid(True, alpha=0.3)
             plt.tight_layout()
-            plt.savefig(os.path.join(self.output_dir, f'fixation_duration_dist_{timestamp}.png'), dpi=300)
+            plt.savefig(os.path.join(graphs_folder, f'fixation_duration_dist_{timestamp}.png'), dpi=300)
         
         # 6. Plot saccade amplitude distribution
         if self.saccades is not None and not self.saccades.empty:
@@ -446,7 +459,7 @@ class GazeDataProcessor:
             plt.ylabel('Frequency')
             plt.grid(True, alpha=0.3)
             plt.tight_layout()
-            plt.savefig(os.path.join(self.output_dir, f'saccade_amplitude_dist_{timestamp}.png'), dpi=300)
+            plt.savefig(os.path.join(graphs_folder, f'saccade_amplitude_dist_{timestamp}.png'), dpi=300)
         
         # 7. Plot heatmap of gaze density
         plt.figure(figsize=(12, 10))
@@ -458,13 +471,14 @@ class GazeDataProcessor:
         plt.axis('equal')
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, f'gaze_heatmap_{timestamp}.png'), dpi=300)
+        plt.savefig(os.path.join(graphs_folder, f'gaze_heatmap_{timestamp}.png'), dpi=300)
         
-        print(f"Visualizations saved to {self.output_dir} directory.")
+        print(f"Visualizations saved to {graphs_folder} directory.")
     
     def save_processed_data(self):
         """
         Save processed data, fixations, saccades, and metrics to CSV files.
+        Organizes data into folders by date in the format "MM#DD#YYYY".
         """
         if self.processed_data is None:
             raise ValueError("Data must be loaded and processed first")
@@ -472,27 +486,44 @@ class GazeDataProcessor:
         print("Saving processed data...")
         
         # Create timestamp for output files
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        current_datetime = datetime.now()
+        timestamp = current_datetime.strftime("%Y%m%d_%H%M%S")
+        
+        # Create date-formatted directory structure (MM#DD#YYYY)
+        date_folder = current_datetime.strftime("%m#%d#%Y")
+        date_folder_path = os.path.join(self.output_dir, date_folder)
+        
+        # Create necessary directories
+        os.makedirs(date_folder_path, exist_ok=True)
+        
+        # Create subdirectories for different types of data
+        csv_folder = os.path.join(date_folder_path, 'csv')
+        graphs_folder = os.path.join(date_folder_path, 'graphs')
+        data_folder = os.path.join(date_folder_path, 'data')
+        
+        os.makedirs(csv_folder, exist_ok=True)
+        os.makedirs(graphs_folder, exist_ok=True)
+        os.makedirs(data_folder, exist_ok=True)
         
         # Save processed data
-        self.processed_data.to_csv(os.path.join(self.output_dir, f'processed_gaze_data_{timestamp}.csv'), index=False)
+        self.processed_data.to_csv(os.path.join(csv_folder, f'processed_gaze_data_{timestamp}.csv'), index=False)
         
         # Save fixations
         if self.fixations is not None and not self.fixations.empty:
-            self.fixations.to_csv(os.path.join(self.output_dir, f'fixations_{timestamp}.csv'), index=False)
+            self.fixations.to_csv(os.path.join(csv_folder, f'fixations_{timestamp}.csv'), index=False)
         
         # Save saccades
         if self.saccades is not None and not self.saccades.empty:
-            self.saccades.to_csv(os.path.join(self.output_dir, f'saccades_{timestamp}.csv'), index=False)
+            self.saccades.to_csv(os.path.join(csv_folder, f'saccades_{timestamp}.csv'), index=False)
         
         # Save metrics
         if self.metrics:
             # Save scalar metrics
             scalar_metrics = {k: v for k, v in self.metrics.items() if np.isscalar(v)}
-            pd.DataFrame([scalar_metrics]).to_csv(os.path.join(self.output_dir, f'gaze_metrics_{timestamp}.csv'), index=False)
+            pd.DataFrame([scalar_metrics]).to_csv(os.path.join(csv_folder, f'gaze_metrics_{timestamp}.csv'), index=False)
             
             # Save wavelet coefficients and other array data
-            np.savez(os.path.join(self.output_dir, f'wavelet_data_{timestamp}.npz'),
+            np.savez(os.path.join(data_folder, f'wavelet_data_{timestamp}.npz'),
                     x_wavelet_coeffs=self.metrics.get('x_wavelet_coeffs', None),
                     y_wavelet_coeffs=self.metrics.get('y_wavelet_coeffs', None),
                     wavelet_freqs=self.metrics.get('wavelet_freqs', None),
@@ -502,7 +533,7 @@ class GazeDataProcessor:
                     x_wavelet_entropy=self.metrics.get('x_wavelet_entropy', None),
                     y_wavelet_entropy=self.metrics.get('y_wavelet_entropy', None))
         
-        print(f"Data saved to {self.output_dir} directory.")
+        print(f"Data saved to {date_folder_path} directory.")
     
     def run_pipeline(self, velocity_threshold=100, min_fixation_duration=0.1, 
                     min_saccade_velocity=300, use_dbscan=False, eps=30, min_samples=5):

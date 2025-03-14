@@ -1,104 +1,136 @@
-# Gaze Data Processing Pipeline
+# Gaze Calculator
 
-A comprehensive data pipeline for processing eye-tracking gaze data, calculating fixations, saccades, and metrics useful for Continuous Wavelet Transform (CWT) analysis.
+A comprehensive eye-tracking data processing and analysis tool for research and applications in visual attention, human-computer interaction, and cognitive science.
 
 ## Features
 
-- Load and preprocess raw gaze data
+- Load and process raw eye-tracking data
 - Detect fixations and saccades using velocity-based or DBSCAN clustering methods
-- Compute various gaze metrics including:
-  - Fixation duration and dispersion
-  - Saccade amplitude and velocity
-  - Path complexity measures
-  - Wavelet coefficients for CWT analysis
-- Generate visualizations:
-  - Gaze trajectory plots
-  - Fixation and saccade maps
+- Calculate gaze metrics and statistics
+- Perform Continuous Wavelet Transform (CWT) analysis
+- Generate visualizations including:
+  - Gaze trajectories
+  - Fixation and saccade plots
   - Velocity profiles
+  - Heatmaps
   - CWT scalograms
-  - Gaze density heatmaps
-- Save processed data for further analysis
+  - Distribution plots
+
+## Data Organization
+
+The processed data is organized in a structured folder hierarchy:
+
+```
+processed_data/
+├── MM#DD#YYYY/           # Date-formatted folders (e.g., 03#11#2025/)
+│   ├── csv/              # CSV data files
+│   │   ├── processed_gaze_data_YYYYMMDD_HHMMSS.csv
+│   │   ├── fixations_YYYYMMDD_HHMMSS.csv
+│   │   ├── gaze_metrics_YYYYMMDD_HHMMSS.csv
+│   │   └── ...
+│   ├── graphs/           # Visualization files
+│   │   ├── gaze_trajectory_YYYYMMDD_HHMMSS.png
+│   │   ├── velocity_profile_YYYYMMDD_HHMMSS.png
+│   │   ├── gaze_heatmap_YYYYMMDD_HHMMSS.png
+│   │   └── ...
+│   └── data/             # Other data files
+│       ├── wavelet_data_YYYYMMDD_HHMMSS.npz
+│       └── ...
+└── ...
+```
 
 ## Installation
 
-1. Clone this repository
-2. Install the required dependencies:
+1. Clone the repository:
 
-```bash
-pip install -r requirements.txt
-```
+   ```
+   git clone https://github.com/yourusername/gaze-calculator.git
+   cd gaze-calculator
+   ```
+
+2. Create and activate a virtual environment:
+
+   ```
+   python -m venv gaze_env
+   source gaze_env/bin/activate  # On Windows: gaze_env\Scripts\activate
+   ```
+
+3. Install the required packages:
+
+   ```
+   pip install -r requirements.txt
+   ```
 
 ## Usage
 
-Basic usage:
+### Basic Usage
 
 ```python
 from gaze_data_processor import GazeDataProcessor
 
-# Initialize the processor with the path to your gaze data file
-processor = GazeDataProcessor("path/to/your/gaze_data.csv")
+# Initialize the processor with the path to your data file
+processor = GazeDataProcessor("data/your_gaze_data.csv")
 
-# Run the complete pipeline with default parameters
+# Run the complete processing pipeline
 results = processor.run_pipeline()
-
-# Or customize the pipeline parameters
-results = processor.run_pipeline(
-    velocity_threshold=100,  # pixels/sec
-    min_fixation_duration=0.1,  # seconds
-    min_saccade_velocity=300,  # pixels/sec
-    use_dbscan=False  # Set to True to use DBSCAN clustering
-)
 ```
 
-## Input Data Format
-
-The input CSV file should contain at minimum the following columns:
-
-- `timestamp`: Time in milliseconds
-- `x`: X-coordinate of gaze position
-- `y`: Y-coordinate of gaze position
-
-## Output
-
-The pipeline generates several outputs in the `processed_data` directory:
-
-- CSV files with processed data, fixations, and saccades
-- Visualization images (PNG format)
-- Metrics summary
-- Wavelet data for CWT analysis
-
-## Customizing the Pipeline
-
-You can use individual methods of the `GazeDataProcessor` class to customize your analysis:
+### Advanced Usage
 
 ```python
-processor = GazeDataProcessor("path/to/your/gaze_data.csv")
+# Initialize the processor
+processor = GazeDataProcessor("data/your_gaze_data.csv")
 
-# Load and preprocess data
+# Load and preprocess the data
 processor.load_data()
 
-# Choose your fixation detection method
-processor.detect_fixations_and_saccades()  # Velocity-based method
-# OR
-processor.detect_fixations_dbscan()  # DBSCAN clustering method
+# Detect fixations and saccades
+processor.detect_fixations_and_saccades(
+    velocity_threshold=100,  # pixels/sec
+    min_fixation_duration=0.1,  # seconds
+    min_saccade_velocity=300  # pixels/sec
+)
 
-# Compute metrics
+# Or use DBSCAN clustering for fixation detection
+processor.detect_fixations_dbscan(
+    eps=30,  # maximum distance between points in a cluster
+    min_samples=5,  # minimum points to form a core point
+    min_duration=0.1  # minimum fixation duration in seconds
+)
+
+# Compute CWT metrics
 processor.compute_cwt_metrics()
 
-# Generate visualizations
+# Create visualizations
 processor.visualize_results()
 
 # Save processed data
 processor.save_processed_data()
 ```
 
-## CWT Analysis
+## Data Migration
 
-The Continuous Wavelet Transform analysis is particularly useful for:
+If you have existing data that needs to be migrated to the new folder structure, you can use the provided migration script:
 
-- Identifying patterns at different time scales
-- Analyzing non-stationary signals
-- Detecting transient events in gaze data
-- Quantifying the time-frequency characteristics of eye movements
+```
+python migrate_data.py
+```
 
-The pipeline computes wavelet coefficients, power spectra, and entropy measures that can be used for further CWT analysis.
+This script will:
+
+1. Scan the processed_data directory for existing files
+2. Extract dates from filenames
+3. Create appropriate date-formatted folders (MM#DD#YYYY)
+4. Move files to their corresponding subdirectories based on file type
+5. Optionally clean up old files after migration (with confirmation)
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [PyWavelets](https://pywavelets.readthedocs.io/) for wavelet transform functionality
+- [Matplotlib](https://matplotlib.org/) and [Seaborn](https://seaborn.pydata.org/) for visualization
+- [Pandas](https://pandas.pydata.org/) and [NumPy](https://numpy.org/) for data processing
+- [scikit-learn](https://scikit-learn.org/) for DBSCAN clustering
